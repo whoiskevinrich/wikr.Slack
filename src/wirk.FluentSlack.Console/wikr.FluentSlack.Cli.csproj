@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <UserSecretsId>wikr-slack</UserSecretsId>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="3.0.1" />
+    <PackageReference Include="Refit.HttpClientFactory" Version="5.0.23" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\wikr.Slack\wikr.FluentSlack.csproj" />
+  </ItemGroup>
+</Project>
