@@ -8,6 +8,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Refit;
 
@@ -17,7 +18,7 @@ namespace wikr.FluentSlack.Cli
     {
         private readonly IHost _host;
 
-        public Program() => _host = CreateHostBuilder().UseConsoleLifetime().Build();
+        public Program(string[] args) => _host = CreateHostBuilder(args).UseConsoleLifetime().Build();
 
         public async Task StartAsync()
         {
@@ -27,33 +28,41 @@ namespace wikr.FluentSlack.Cli
 
         static async Task Main(string[] args)
         {
-            var program = new Program();
+            var program = new Program(args);
             await program.StartAsync();
             await program.StopAsync();
         }
 
-        public static IHostBuilder CreateHostBuilder() =>
-            Host.CreateDefaultBuilder()
-                .ConfigureHostConfiguration(config => config.AddUserSecrets<Program>())
+        public static IHostBuilder CreateHostBuilder(string[] args) =>
+            Host.CreateDefaultBuilder(args)
                 .ConfigureLogging(builder => builder.AddConsole().AddDebug())
                 .ConfigureServices((hostContext, services) =>
                 {
                     hostContext.HostingEnvironment.ApplicationName = "Fluent Slack Demo";
 
+                    services.Configure<SlackConfiguration>(hostContext.Configuration.GetSection("Slack"));
+
                     services.AddSingleton<Application>();
 
                     services.AddRefitClient<IChatApi>(new RefitSettings
                     {
-                        ContentSerializer = new JsonContentSerializer(new JsonSerializerSettings
-                            {Formatting = Formatting.None, NullValueHandling = NullValueHandling.Ignore})
-                    }).ConfigureHttpClient(client =>
+                        ContentSerializer = new JsonContentSerializer(
+                            new JsonSerializerSettings
+                                {
+                                    Formatting = Formatting.None, 
+                                    NullValueHandling = NullValueHandling.Ignore
+                                })
+                    }).ConfigureHttpClient((provider, client) =>
                     {
-                        client.BaseAddress = new Uri("https://slack.com/api/");
+                        var opts = provider.GetService<IOptions<SlackConfiguration>>().Value;
+                        client.BaseAddress = new Uri(opts.ApiBaseAddress);
                         client.DefaultRequestHeaders.Authorization =
-                            new AuthenticationHeaderValue("Bearer", hostContext.Configuration["Slack:OAuthToken"]);
+                            new AuthenticationHeaderValue("Bearer", opts.OAuthToken);
                     });
                 })
                 .UseConsoleLifetime();
+
+
 
 
         public async Task StopAsync()
@@ -64,18 +73,27 @@ namespace wikr.FluentSlack.Cli
             }
         }
     }
+    public class SlackConfiguration
+    {
+        public string ApiBaseAddress { get; set; } = "https://slack.com/api/";
+        public string OAuthToken { get; set; }
+
+        public string Channel { get; set; }
+    }
 
     public class Application
     {
         private readonly ILogger<Application> _logger;
         private readonly IChatApi _chat;
+        private readonly IOptions<SlackConfiguration> _options;
 
-        private const string Channel = "#wikr-slack-testing";
+        private string Channel => _options.Value.Channel;
 
-        public Application(ILogger<Application> logger, IChatApi chat)
+        public Application(ILogger<Application> logger, IChatApi chat, IOptions<SlackConfiguration> options)
         {
             _logger = logger;
             _chat = chat;
+            _options = options;
         }
 
         public async Task Go()
@@ -83,8 +101,8 @@ namespace wikr.FluentSlack.Cli
             var messages = new List<ChatMessage>
             {
                 //BasicBlockMessage(),
-                //BasicChatMessage(),
-                BlockMessageWithDivider()
+                BasicChatMessage(),
+                //BlockMessageWithDivider()
             };
 
             foreach (var message in messages)
@@ -128,15 +146,15 @@ namespace wikr.FluentSlack.Cli
             {
                 Blocks = new List<Block>
                 {
-                    //new Block(BlockType.Section)
-                    //{
-                    //    Text = new TextBlock{Text = "Section 1", Type = TextBlockType.MarkDown}
-                    //},
+                    new Block(BlockType.Section)
+                    {
+                        Text = new TextBlock{Text = "Section 1", Type = TextBlockType.MarkDown}
+                    },
                     new Block(BlockType.Divider){BlockId = "blockid"},
-                    //new Block(BlockType.Section)
-                    //{
-                    //    Text = new TextBlock{Text = "Section 2", Type = TextBlockType.MarkDown}
-                    //}
+                    new Block(BlockType.Section)
+                    {
+                        Text = new TextBlock{Text = "Section 2", Type = TextBlockType.MarkDown}
+                    }
                 }
             };
     }
