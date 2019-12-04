@@ -7,7 +7,7 @@ namespace wikr.FluentSlack
     public interface IChatApi
     {
         [Post("/chat.postMessage")]
-        Task<SlackResponse> PostMessage(ChatMessage message);
+        Task<SlackResponse> PostMessage(Payload message);
     }
 
     [Headers("Content-Type: application/x-www-form-urlencoded")]
