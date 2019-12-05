@@ -7,8 +7,7 @@ namespace wikr.FluentSlack.Tests
         [Fact]
         public void Test1()
         {
-            var slack = new Slack();
-            slack.CreateMessage("test");
+            
         }
     }
 }

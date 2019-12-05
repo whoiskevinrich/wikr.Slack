@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Newtonsoft.Json;
 
-namespace wikr.FluentSlack
+namespace wikr.FluentSlack.Models
 {
     public class SectionBlock : Block
     {

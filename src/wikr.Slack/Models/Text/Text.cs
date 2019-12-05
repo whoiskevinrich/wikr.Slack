@@ -1,10 +1,10 @@
 ﻿using Newtonsoft.Json;
 
-namespace wikr.FluentSlack
+namespace wikr.FluentSlack.Models
 {
     public class Text
     {
-        public Text(string text, string type = "mrkdwn")
+        public Text(string text, string type = TextType.SlackMarkDown)
         {
             TextValue = text;
             Type = type;

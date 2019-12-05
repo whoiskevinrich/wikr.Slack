@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using wikr.FluentSlack.Models;
 
 namespace wikr.FluentSlack.Cli
 {
@@ -26,9 +27,9 @@ namespace wikr.FluentSlack.Cli
         {
             var messages = new List<Payload>
             {
-                //BasicBlockMessage(),
-                //BasicChatMessage(),
-                //BlockMessageWithDivider(),
+                BasicBlockMessage(),
+                BasicChatMessage(),
+                BlockMessageWithDivider(),
                 PaperCompanyBlockKitBuilderDemo(),
             };
 
@@ -50,54 +51,43 @@ namespace wikr.FluentSlack.Cli
         }
 
         private Payload PaperCompanyBlockKitBuilderDemo() =>
-            new Payload(Channel, message =>
+            new Payload(Channel, nameof(PaperCompanyBlockKitBuilderDemo), message =>
             {
                 message.Blocks = new Block[]
                 {
-                    new SectionBlock(block =>
-                    {
-                        block.Text = new Text();
-                    })
+                    new SectionBlock(new PlainText(nameof(PaperCompanyBlockKitBuilderDemo) + "FallBackText"), block => { block.Text = new Text("PAPERCOMPANYDEMO TODO"); })
                 };
             });
 
         private Payload BasicChatMessage() => 
-            new Payload(Channel, options => options.Text = "TEST");
+            new Payload(Channel, nameof(BasicChatMessage));
 
         private Payload BasicBlockMessage() =>
-            new Payload(Channel)
+            new Payload(Channel, nameof(BasicBlockMessage), payload =>
             {
-                Blocks = new List<Block>
+                payload.Blocks = new Block[]
                 {
-                    new SectionBlock(block =>
-                    {
-                        block.Text = new Text {Type = TextComponentType.MarkDown, Text = "*TEST* *TEST*"};
-                    })
-                }
-            };
+                    new SectionBlock(new PlainText(nameof(BasicBlockMessage)))
+                };
+            });
 
         private Payload BlockMessageWithDivider() =>
-            new Payload(Channel)
+            new Payload(Channel, nameof(BlockMessageWithDivider))
             {
-                Blocks = new List<Block>
+                Blocks = new Block[]
                 {
-                    new SectionBlock(block =>
+                    new SectionBlock(new Text("Basic Section Block")),
+                    new DividerBlock(Guid.NewGuid().ToString()),
+                    new SectionBlock(new Text("Section Block with Fields"), block =>
                     {
-                        block.Text = new Text {Text = "Basic Section Block", Type = TextComponentType.MarkDown};
-                    }),
-                    new DividerBlock {BlockId = Guid.NewGuid().ToString()},
-                    new SectionBlock(block =>
-                    {
-                        block.Text = new Text {Text = "Section Block With Fields", Type = TextComponentType.MarkDown};
-                        block.Fields = new List<Text>
+                        block.Fields = new[]
                         {
-                            new Text {Text = "*Priority*", Type = TextComponentType.MarkDown},
-                            new Text {Text = "*Type*", Type = TextComponentType.MarkDown},
-
-                            new Text {Text = "High", Type = TextComponentType.PlainText},
-                            new Text {Text = "String", Type = TextComponentType.PlainText},
+                            new Text("*Priority*"),
+                            new Text("*Type*"), 
+                            new PlainText("High"),
+                            new PlainText("String") 
                         };
-                    })
+                    }),
                 }
             };
     }
