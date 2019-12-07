@@ -129,4 +129,18 @@ namespace wikr.FluentSlack
         /// </summary>
         [JsonProperty("confirm")] public ConfirmationDialog Confirm { get; set; }
     }
+
+    public class ImageElement : BlockElement
+    {
+        public ImageElement(Uri imageUrl, string altText) : base(ElementType.Image)
+        {
+            ImageUrl = imageUrl;
+            AltText = altText;
+        }
+
+        [JsonProperty("image_url")] public Uri ImageUrl { get; }
+        [JsonProperty("alt_text")] public string AltText { get; }
+    }
+
+
 }
